@@ -1,5 +1,5 @@
 // Shell and data are cached up front; page images are cached as they are viewed.
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const PRECACHE = ["./", "index.html", "styles.css", "app.js", "data.json", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];

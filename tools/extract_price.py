@@ -1,6 +1,9 @@
 """Turn a price catalogue PDF into page images and a searchable data.json.
 
-Usage: python extract_price.py <catalogue.pdf> <out_dir> "<title>"
+Usage: python extract_price.py <catalogue.pdf> <out_dir> "<title>" [sections.json]
+
+sections.json maps a start page to a section name ({"1": "Đèn LED downlight"}). Without it,
+sections are guessed from cover pages, which can pick up slogans.
 """
 import json
 import re
@@ -112,7 +115,10 @@ def render(page, out, number):
             out / folder / f"{number}.webp", format="WEBP", quality=quality)
 
 
-def main(pdf, out, title):
+def main(pdf, out, title, sections_file=None):
+    named = {}
+    if sections_file:
+        named = {int(k): v for k, v in json.loads(Path(sections_file).read_text(encoding="utf-8")).items()}
     doc = fitz.open(pdf)
     out = Path(out)
     for folder in ("pages", "thumbs"):
@@ -123,7 +129,11 @@ def main(pdf, out, title):
         number = index + 1
         render(page, out, number)
         text = page.get_text()
-        if len(text.strip()) < COVER_MAX_CHARS and big_spans(page, COVER_FONT):
+        if named:
+            if number in named:
+                section = named[number]
+                sections.append({"s": section, "p": number})
+        elif len(text.strip()) < COVER_MAX_CHARS and big_spans(page, COVER_FONT):
             section = cover_name(page)
             sections.append({"s": section, "p": number})
 
@@ -143,4 +153,4 @@ def main(pdf, out, title):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])

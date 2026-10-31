@@ -8,7 +8,7 @@
 Cập nhật khi có bảng giá mới:
 
 ```bash
-python tools/extract_price.py <catalogue.pdf> docs "Bảng giá Rạng Đông"
+python tools/extract_price.py <catalogue.pdf> docs "Bảng giá Rạng Đông" tools/sections-bang-gia-2026.json
 ```
 
 Sau đó tăng `VERSION` trong `docs/sw.js` để điện thoại tải bản mới. Dữ liệu được tách tự động; đối chiếu trang gốc trước khi báo giá.
