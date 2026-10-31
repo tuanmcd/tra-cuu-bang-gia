@@ -1,8 +1,8 @@
 // Shell and data are cached up front; page images are cached as they are viewed.
-const VERSION = "v3";
+const VERSION = "v5";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
-const PRECACHE = ["./", "index.html", "styles.css", "app.js", "data.json", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
+const PRECACHE = ["./", "index.html", "styles.css", "app.js", "reader.js", "voice.js", "data.json", "manifest.webmanifest", "icons/favicon.png", "icons/logo-rd.png", "icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));

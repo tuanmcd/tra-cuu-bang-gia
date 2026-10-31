@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tra cứu bảng giá</title>
+<title>RD products</title>
 <meta name="description" content="Tra cứu nhanh model, thông số và giá bán lẻ trong catalogue, dùng được cả khi không có mạng.">
 <meta name="theme-color" content="#14161c">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-title" content="RD products">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -18,8 +19,8 @@
 <header class="top">
   <div class="top__row">
     <a class="brand" href="#/" aria-label="Về trang đầu">
-      <span class="brand__mark" aria-hidden="true"></span>
-      <span class="brand__text"><b>Tra cứu</b> <span id="doc-title">bảng giá</span></span>
+      <span class="brand__logo"><img src="icons/logo-rd.png" alt="Rạng Đông" width="424" height="99"></span>
+      <span class="brand__text"><b>RD products</b> <span id="doc-title"></span></span>
     </a>
     <span class="net" id="net" hidden>Ngoại tuyến</span>
   </div>
@@ -29,6 +30,9 @@
     <input id="q" type="search" inputmode="search" autocomplete="off" enterkeyhint="search"
            placeholder="Gõ model hoặc tên, vd: at04 10w, den duong">
     <button class="search__clear" id="clear" type="button" aria-label="Xoá" hidden>×</button>
+    <button class="search__mic" id="mic" type="button" aria-label="Tìm bằng giọng nói" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+    </button>
   </label>
   <nav class="chips" id="chips" aria-label="Nhóm sản phẩm"></nav>
 </header>
@@ -40,6 +44,43 @@
   <div id="sheet-body"></div>
 </dialog>
 
+<div class="reader" id="reader" hidden>
+  <header class="reader__top">
+    <button type="button" class="reader__btn" data-reader-close aria-label="Đóng sách">✕</button>
+    <span class="reader__label" id="reader-label" aria-live="polite"></span>
+    <button type="button" class="reader__btn" data-reader-zoom aria-label="Phóng to trang này">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2M11 8v6M8 11h6"/></svg>
+    </button>
+    <button type="button" class="reader__btn" data-reader-toc aria-label="Mục lục">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    </button>
+  </header>
+  <div class="reader__track" id="reader-track" tabindex="0" aria-label="Các trang catalogue, vuốt ngang để lật"></div>
+  <footer class="reader__bottom">
+    <input type="range" id="reader-range" min="1" value="1" aria-label="Chuyển nhanh tới trang">
+    <p class="reader__hint">Vuốt hoặc chạm mép để lật · chạm giữa để ẩn thanh · chạm đúp để phóng to</p>
+  </footer>
+  <nav class="reader__toc" id="reader-toc" aria-label="Mục lục" hidden>
+    <h2>Mục lục</h2>
+    <ol id="reader-toc-list"></ol>
+  </nav>
+</div>
+
+<div class="voice" id="voice" role="dialog" aria-modal="true" aria-label="Tìm bằng giọng nói" hidden>
+  <div class="voice__panel">
+    <button type="button" class="voice__close" data-voice-close aria-label="Đóng">✕</button>
+    <div class="voice__orb" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+    </div>
+    <p class="voice__status" id="voice-status" aria-live="polite"></p>
+    <p class="voice__heard" id="voice-heard" aria-live="polite"></p>
+    <button type="button" class="btn btn--primary voice__retry" id="voice-retry" hidden>Nói lại</button>
+    <p class="voice__tips">Ví dụ: “đèn đường năng lượng mặt trời”, “downlight 10 oát”, “ổ cắm kéo dài”</p>
+  </div>
+</div>
+
 <script src="app.js" defer></script>
+<script src="reader.js" defer></script>
+<script src="voice.js" defer></script>
 </body>
 </html>

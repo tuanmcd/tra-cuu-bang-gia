@@ -35,24 +35,33 @@ function prepare(data) {
   });
 }
 
-function score(product, tokens) {
+function score(product, tokens, allowedMisses = 0) {
   let total = 0;
+  let misses = 0;
   for (const token of tokens) {
     const flat = token.replace(/[^a-z0-9]/g, "");
     if (product.key.startsWith(flat) && flat) total += 12;
     else if (flat && product.key.includes(flat)) total += 7;
     else if (product.hay.includes(token)) total += 2;
-    else return 0;
+    else if (++misses > allowedMisses) return 0;
   }
   return total;
 }
 
+function rank(list, tokens, allowedMisses) {
+  return list.map((p) => ({ p, s: score(p, tokens, allowedMisses) })).filter((r) => r.s > 0)
+    .sort((a, b) => b.s - a.s || a.p.p - b.p.p).map((r) => r.p);
+}
+
+// Spoken queries often carry an extra word; with three or more words, allow one to miss.
 function search(query) {
   const tokens = fold(query).split(/\s+/).filter(Boolean);
   let list = state.products.filter((p) => !state.section || p.s === state.section);
+  let loose = false;
   if (tokens.length) {
-    list = list.map((p) => ({ p, s: score(p, tokens) })).filter((r) => r.s > 0)
-      .sort((a, b) => b.s - a.s || a.p.p - b.p.p).map((r) => r.p);
+    const exact = rank(list, tokens, 0);
+    loose = !exact.length && tokens.length >= 3;
+    list = loose ? rank(list, tokens, 1) : exact;
   }
   if (state.sort !== "rel") {
     const dir = state.sort === "asc" ? 1 : -1;
@@ -61,7 +70,7 @@ function search(query) {
   }
   const pages = tokens.length ? state.data.pageList.filter((pg) =>
     (!state.section || pg.s === state.section) && tokens.every((t) => pg.f.includes(t))) : [];
-  return { list, pages, tokens };
+  return { list, pages, tokens, loose };
 }
 
 function highlight(model, tokens) {
@@ -93,6 +102,7 @@ function renderHome() {
   const counts = {};
   state.products.forEach((p) => { counts[p.s] = (counts[p.s] || 0) + 1; });
   const priced = state.products.filter((p) => p.n).length;
+  const resume = Math.min(Reader.lastPage(), d.pages);
   view.innerHTML = `
     <section class="hero">
       <h1>Tìm model, xem giá trong vài giây.</h1>
@@ -102,11 +112,17 @@ function renderHome() {
         <div><b>${priced}</b>có giá niêm yết</div>
         <div><b>${d.pages}</b>trang gốc</div>
       </div>
+      <a class="book" href="#/doc/${resume}">
+        <img src="thumbs/${resume}.webp" alt="" width="320" height="468">
+        <span><b>${resume > 1 ? `Đọc tiếp trang ${resume}` : "Đọc như sách"}</b>
+        Lật trang bằng cách vuốt hoặc chạm mép màn hình</span>
+        <span class="book__go" aria-hidden="true">›</span>
+      </a>
     </section>
     <h2 class="eyebrow">Nhóm sản phẩm</h2>
     <div class="sections">${d.toc.map((t, i) => {
       const end = (d.toc[i + 1]?.p || d.pages + 1) - 1;
-      return `<a class="section" href="#/p/${t.p}" data-pick="${esc(t.s)}">
+      return `<a class="section" href="#/doc/${t.p}" data-pick="${esc(t.s)}">
         <img src="thumbs/${t.p}.webp" alt="" loading="lazy" width="320" height="286">
         <div><h3>${esc(t.s)}</h3><span>${counts[t.s] || 0} model · trang ${t.p}–${end}</span></div></a>`;
     }).join("")}</div>`;
@@ -115,7 +131,7 @@ function renderHome() {
 function renderResults() {
   const query = input.value.trim();
   if (!query && !state.section) return renderHome();
-  const { list, pages, tokens } = search(query);
+  const { list, pages, tokens, loose } = search(query);
   const shown = list.slice(0, state.limit);
   const sortBtn = (key, label) => `<button type="button" data-sort="${key}" aria-pressed="${state.sort === key}">${label}</button>`;
   view.innerHTML = list.length || pages.length ? `
@@ -123,6 +139,7 @@ function renderResults() {
       <p>${list.length} model${state.section ? ` trong <b>${esc(state.section)}</b>` : ""}</p>
       <div class="sort" role="group" aria-label="Sắp xếp">${sortBtn("rel", "Phù hợp")}${sortBtn("asc", "Giá ↑")}${sortBtn("desc", "Giá ↓")}</div>
     </div>
+    ${loose ? `<p class="loose">Không có model khớp đủ mọi từ trong “${esc(query)}”. Đây là các kết quả gần nhất.</p>` : ""}
     <ul class="results">${shown.map((p) => itemHTML(p, tokens)).join("")}</ul>
     ${list.length > shown.length ? `<button class="more" type="button" data-more>Xem thêm ${Math.min(RESULT_PAGE, list.length - shown.length)} model</button>` : ""}
     ${pages.length ? `<h2 class="eyebrow">Trang có nhắc tới “${esc(query)}”</h2>
@@ -140,6 +157,7 @@ function renderPage(n) {
     <div class="viewer__bar">
       <a href="#/p/${n - 1}" aria-disabled="${n <= 1}" aria-label="Trang trước">‹</a>
       <span class="viewer__title">${esc(page.s)} · Trang ${n}/${d.pages}</span>
+      <a href="#/doc/${n}" class="viewer__book">Đọc dạng sách</a>
       <a href="#/p/${n + 1}" aria-disabled="${n >= d.pages}" aria-label="Trang sau">›</a>
     </div>
     <div class="viewer__page"><img src="pages/${n}.webp" alt="Trang ${n} của catalogue" width="1100" height="1610"></div>
@@ -178,10 +196,24 @@ async function share(i) {
 }
 
 function route() {
+  const book = location.hash.match(/^#\/doc\/(\d+)/);
+  if (book) {
+    if (!view.innerHTML) renderResults();
+    return Reader.open(Number(book[1]));
+  }
+  if (Reader.isOpen()) Reader.close();
   const m = location.hash.match(/^#\/p\/(\d+)/);
   if (m) return renderPage(Number(m[1]));
   renderResults();
 }
+
+function setQuery(query) {
+  input.value = query;
+  input.dispatchEvent(new Event("input"));
+  if (location.hash.startsWith("#/doc/")) location.hash = "#/";
+}
+
+window.APP = { state, esc, search, setQuery };
 
 let timer;
 input.addEventListener("input", () => {
@@ -235,7 +267,7 @@ async function start() {
   }
   state.products = prepare(state.data);
   $("#doc-title").textContent = state.data.title;
-  document.title = `Tra cứu · ${state.data.title}`;
+  document.title = `RD products · ${state.data.title}`;
   renderChips();
   syncHeaderHeight();
   route();
