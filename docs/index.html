@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tra cứu bảng giá</title>
+<meta name="description" content="Tra cứu nhanh model, thông số và giá bán lẻ trong catalogue, dùng được cả khi không có mạng.">
+<meta name="theme-color" content="#14161c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="top__row">
+    <a class="brand" href="#/" aria-label="Về trang đầu">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span class="brand__text"><b>Tra cứu</b> <span id="doc-title">bảng giá</span></span>
+    </a>
+    <span class="net" id="net" hidden>Ngoại tuyến</span>
+  </div>
+  <label class="search">
+    <span class="sr">Tìm model, tên sản phẩm hoặc thông số</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" inputmode="search" autocomplete="off" enterkeyhint="search"
+           placeholder="Gõ model hoặc tên, vd: at04 10w, den duong">
+    <button class="search__clear" id="clear" type="button" aria-label="Xoá" hidden>×</button>
+  </label>
+  <nav class="chips" id="chips" aria-label="Nhóm sản phẩm"></nav>
+</header>
+
+<main id="view" tabindex="-1"></main>
+
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet__grip" aria-hidden="true"></div>
+  <div id="sheet-body"></div>
+</dialog>
+
+<script src="app.js" defer></script>
+</body>
+</html>
