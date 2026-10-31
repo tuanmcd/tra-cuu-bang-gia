@@ -1,5 +1,6 @@
 // Shell and data are cached up front; page images are cached as they are viewed.
-const VERSION = "v5";
+// The shell and data are network-first so a deploy shows up on the next visit; images are cache-first.
+const VERSION = "v6";
 const SHELL = `shell-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 const PRECACHE = ["./", "index.html", "styles.css", "app.js", "reader.js", "voice.js", "data.json", "manifest.webmanifest", "icons/favicon.png", "icons/logo-rd.png", "icons/icon-192.png"];
@@ -17,8 +18,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
-  const isData = url.pathname.endsWith("data.json");
-  event.respondWith(isData ? networkFirst(event.request) : cacheFirst(event.request));
+  const isImage = /\.(webp|png|jpe?g|svg|woff2?)$/i.test(url.pathname) || url.hostname === "fonts.gstatic.com";
+  event.respondWith(isImage ? cacheFirst(event.request) : networkFirst(event.request));
 });
 
 async function cacheFirst(request) {
